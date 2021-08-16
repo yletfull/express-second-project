@@ -1,8 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const fileUpload = require('express-fileupload');
 const { runServerCallback, runServerErrorCallback } = require('./helpers');
 const mainRouter = require('./routes');
+const errorHandler = require('./middleware/ErrorHandlingMiddleware');
 
 const sequelize = require('./db');
 // const models = require('./models/models');
@@ -12,7 +14,10 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload({}));
 app.use('/api', mainRouter);
+
+app.use(errorHandler);
 
 const start = async () => {
   try {
