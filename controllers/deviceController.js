@@ -25,11 +25,11 @@ class DeviceController {
   }
 
   async getAll(req, res) {
-    return res.status('200', { message: 'ок' });
+    return res.status(200).json({ message: 'ок' });
   }
 
   async getOne(req, res) {
-    return res.status('200', { message: 'ок' });
+    return res.status(200).json({ message: 'ок' });
   }
 }
 
