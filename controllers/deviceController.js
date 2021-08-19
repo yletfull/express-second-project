@@ -1,14 +1,14 @@
 /* eslint-disable class-methods-use-this */
 const uuid = require('uuid');
 const path = require('path');
-const { Device } = require('../models');
+const { Device, DeviceInfo } = require('../models');
 const ApiError = require('../error/ApiError');
 
 class DeviceController {
   async create(req, res, next) {
     try {
       const {
-        name, price, brandId, typeId,
+        name, price, brandId, typeId, info,
       } = req.body;
 
       const { img } = req.files;
@@ -18,14 +18,13 @@ class DeviceController {
         name, price, brandId, typeId, img: fileName,
       });
 
-      // if (info) {
-      //   info = JSON.parse(info);
-      //   info.forEach((i) => DeviceInfo.create({
-      //     title: i.title,
-      //     description: i.description,
-      //     deviceId: device.id,
-      //   }));
-      // }
+      if (info) {
+        JSON.parse(info).forEach((i) => DeviceInfo.create({
+          title: i.title,
+          description: i.description,
+          deviceId: device.id,
+        }));
+      }
 
       return res.json(device);
     } catch (e) {
@@ -42,22 +41,27 @@ class DeviceController {
 
     let brands = null;
     if (!brandId && !typeId) {
-      brands = await Device.findAll({ limit, offset });
+      brands = await Device.findAndCountAll({ limit, offset });
     }
     if (brandId && !typeId) {
-      brands = await Device.findAll({ where: { brandId }, limit, offset });
+      brands = await Device.findAndCountAll({ where: { brandId }, limit, offset });
     }
     if (!brandId && typeId) {
-      brands = await Device.findAll({ where: { typeId }, limit, offset });
+      brands = await Device.findAndCountAll({ where: { typeId }, limit, offset });
     }
     if (brandId && typeId) {
-      brands = await Device.findAll({ where: { brandId, typeId }, limit, offset });
+      brands = await Device.findAndCountAll({ where: { brandId, typeId }, limit, offset });
     }
     return res.status(200).json(brands);
   }
 
   async getOne(req, res) {
-    return res.status(200).json({ message: 'ок' });
+    const { id } = req.params;
+    const device = await Device.findOne({
+      where: { id },
+      include: [{ model: DeviceInfo, as: 'info' }],
+    });
+    return res.status(200).json(device);
   }
 }
 
