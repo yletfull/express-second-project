@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const ApiError = require('../error/ApiError');
 const { User, Basket } = require('../models');
 
-const generationJWT = ({
+const generateJWT = ({
   id, email, login, role,
 }) => jwt.sign(
   {
@@ -40,7 +40,7 @@ class UserController {
       });
       await Basket.create({ userId: user.id });
 
-      const token = generationJWT({
+      const token = generateJWT({
         id: user.id,
         email: user.email,
         login: user.login,
@@ -68,13 +68,26 @@ class UserController {
     if (!comparePassword) {
       return next(ApiError.internal('Указан неверный логин/пароль'));
     }
-
-    const token = generationJWT(user.id, user.email, user.role);
+    const token = generateJWT({
+      id: user.id,
+      email: user.email,
+      login: user.login,
+      role: user.role,
+    });
     return res.status(200).json(token);
   }
 
   async check(req, res) {
-    return res.json('ок');
+    const {
+      id, email, login, role,
+    } = req.user;
+    const token = generateJWT({
+      id,
+      email,
+      login,
+      role,
+    });
+    return res.json(token);
   }
 }
 
