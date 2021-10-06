@@ -3,6 +3,7 @@ const uuid = require('uuid');
 const path = require('path');
 const { Device, DeviceInfo } = require('../models');
 const ApiError = require('../error/ApiError');
+const { statics } = require('../constants/statics');
 
 class DeviceController {
   async create(req, res, next) {
@@ -13,7 +14,7 @@ class DeviceController {
 
       const { img } = req.files;
       const fileName = `${uuid.v4()}.jpg`;
-      img.mv(path.resolve(__dirname, '..', 'static', fileName));
+      img.mv(path.resolve(__dirname, statics.device, fileName));
       const device = await Device.create({
         name, price, brandId, typeId, img: fileName,
       });
