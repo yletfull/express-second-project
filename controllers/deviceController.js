@@ -13,8 +13,9 @@ class DeviceController {
       } = req.body;
 
       const { img } = req.files;
-      const fileName = `${uuid.v4()}.jpg`;
-      img.mv(path.resolve(__dirname, statics.device, fileName));
+      const extention = path.extname(img.name).substr(1);
+      const fileName = `${uuid.v4()}.${extention}`;
+      img.mv(path.resolve(__dirname, statics.general, fileName));
       const device = await Device.create({
         name, price, brandId, typeId, img: fileName,
       });

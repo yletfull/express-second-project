@@ -1,5 +1,5 @@
 const statics = {
-  device: '../device',
+  general: '../static',
 };
 
 module.exports = {
