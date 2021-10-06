@@ -1,24 +1,28 @@
 const jwt = require('jsonwebtoken');
+const ApiError = require('../error/ApiError');
 
 module.exports = function checkRole(role) {
-  return function checkRoleCallback(req, res, next) {
+  return async function checkRoleCallback(req, res, next) {
     if (req.method === 'OPTIONS') {
-      next();
+      return next();
     }
     try {
-      const token = req.headers.authorization.split(' ')[1];
+      const token = req.headers?.authorization?.split(' ')[1];
       if (!token) {
-        return res.status(401).json({ message: 'Не авторизован' });
+        const { status, message } = ApiError.unAuthorized();
+        return res.status(status).json({ message });
       }
       const decoded = jwt.verify(token, process.env.SECRET_KEY);
       if (decoded.role !== role) {
-        return res.status(403).json({ message: 'Нет доступа' });
+        const { status, message } = ApiError.forbidden();
+        return res.status(status).json({ message });
       }
       req.user = decoded;
-      next();
+
+      return next();
     } catch (e) {
-      res.status(401).json({ message: 'Не авторизован' });
+      const { status, message } = ApiError.unAuthorized();
+      return res.status(status).json({ message });
     }
-    return res.status(404).json({ message: 'Произошла ошибка' });
   };
 };

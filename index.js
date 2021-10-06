@@ -8,7 +8,6 @@ const mainRouter = require('./routes');
 const errorHandler = require('./middleware/ErrorHandlingMiddleware');
 
 const sequelize = require('./db');
-// const models = require('./models');
 
 const PORT = process.env.PORT || 5000;
 

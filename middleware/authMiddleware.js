@@ -1,4 +1,7 @@
 const jwt = require('jsonwebtoken');
+const ApiError = require('../error/ApiError');
+
+const { status: statusErr, message: messageErr } = ApiError.unAuthorized();
 
 module.exports = function auth(req, res, next) {
   if (req.method === 'OPTIONS') {
@@ -7,13 +10,13 @@ module.exports = function auth(req, res, next) {
   try {
     const token = req.headers.authorization.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ message: 'Не авторизован' });
+      return res.status(statusErr).json({ message: messageErr });
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     req.user = decoded;
-    next();
+
+    return next();
   } catch (e) {
-    res.status(401).json({ message: 'Не авторизован' });
+    return res.status(statusErr).json({ message: messageErr });
   }
-  return res.status(404).json({ message: 'Произошла ошибка' });
 };

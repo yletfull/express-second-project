@@ -13,11 +13,15 @@ class ApiError extends Error {
     return new ApiError(500, message);
   }
 
-  static forbidden(message) {
+  static forbidden(message = 'Нет доступа') {
     return new ApiError(403, message);
   }
 
-  static unAuthorized(message) {
+  static unAuthorized(message = 'Пользователь не авторизован') {
+    return new ApiError(401, message);
+  }
+
+  static gatewayTimeout(message = 'Gateway timeout') {
     return new ApiError(401, message);
   }
 }
