@@ -74,7 +74,7 @@ class UserController {
       login: user.login,
       role: user.role,
     });
-    return res.status(200).json(token);
+    return res.status(200).json({ token });
   }
 
   async check(req, res) {
