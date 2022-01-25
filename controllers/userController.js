@@ -88,7 +88,33 @@ class UserController {
       login,
       role,
     });
-    return res.json({ token });
+    return res.json({
+      token,
+      user: {
+        id, email, login, role,
+      },
+    });
+  }
+
+  async getRoles(req, res) {
+    return res.json({
+      roles,
+    });
+  }
+
+  async getAllUsers(req, res) {
+    const users = await User.findAll();
+    return res.status(200).json(users);
+  }
+
+  async setUser(req, res) {
+    const { id } = req.params;
+    const updateUser = await User.update({
+      where: {
+        id,
+      },
+    });
+    return res.status(200).json(updateUser);
   }
 }
 
