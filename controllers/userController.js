@@ -107,14 +107,22 @@ class UserController {
     return res.status(200).json(users);
   }
 
-  async setUser(req, res) {
+  async setUser(req, res, next) {
     const { id } = req.params;
-    const updateUser = await User.update({
-      where: {
-        id,
-      },
-    });
-    return res.status(200).json(updateUser);
+    const { email, login, role } = req.body;
+    try {
+      const updateUser = await User.update({
+        email, login, role,
+      }, {
+        where: {
+          id,
+        },
+      });
+      return res.status(200).json(updateUser);
+    } catch (err) {
+      next(ApiError.badRequest(err));
+    }
+    return next(ApiError.badRequest('Ошибка'));
   }
 }
 
