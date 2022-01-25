@@ -2,6 +2,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
+const { roles } = require('../constants/roles');
 const ApiError = require('../error/ApiError');
 const { User, Basket } = require('../models');
 
@@ -18,7 +19,7 @@ const generateJWT = ({
 class UserController {
   async registration(req, res, next) {
     const {
-      email, password, login, role,
+      email, password, login, role = roles.user,
     } = req.body;
     if (!email || !password) {
       return next(ApiError.badRequest('Некорректный email или пароль'));
@@ -87,7 +88,7 @@ class UserController {
       login,
       role,
     });
-    return res.json(token);
+    return res.json({ token });
   }
 }
 
