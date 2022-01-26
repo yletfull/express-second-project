@@ -1,6 +1,6 @@
 const Router = require('express');
 const { roles } = require('../constants/roles');
-const brandController = require('../controllers/brandController');
+const brandController = require('../controllers/brand/brandController');
 const checkRoleMiddleware = require('../middleware/checkRoleMiddleware');
 
 const router = new Router();

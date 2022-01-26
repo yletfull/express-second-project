@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
 const uuid = require('uuid');
 const path = require('path');
-const { Device, DeviceInfo } = require('../models');
-const ApiError = require('../error/ApiError');
-const { statics } = require('../constants/statics');
+const { Device, DeviceInfo } = require('../../models');
+const ApiError = require('../../error/ApiError');
+const { statics } = require('../../constants/statics');
 
 class DeviceController {
   async create(req, res, next) {
@@ -34,27 +34,31 @@ class DeviceController {
     }
   }
 
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     const {
       brandId, typeId, limit = 10, currentPage = 1,
     } = req.query;
 
     const offset = currentPage * limit - limit;
 
-    let brands = null;
-    if (!brandId && !typeId) {
-      brands = await Device.findAndCountAll({ limit, offset });
+    try {
+      let brands = null;
+      if (!brandId && !typeId) {
+        brands = await Device.findAndCountAll({ limit, offset });
+      }
+      if (brandId && !typeId) {
+        brands = await Device.findAndCountAll({ where: { brandId }, limit, offset });
+      }
+      if (!brandId && typeId) {
+        brands = await Device.findAndCountAll({ where: { typeId }, limit, offset });
+      }
+      if (brandId && typeId) {
+        brands = await Device.findAndCountAll({ where: { brandId, typeId }, limit, offset });
+      }
+      return res.status(200).json(brands);
+    } catch (err) {
+      return next(ApiError.badRequest('Ничего не найдено'));
     }
-    if (brandId && !typeId) {
-      brands = await Device.findAndCountAll({ where: { brandId }, limit, offset });
-    }
-    if (!brandId && typeId) {
-      brands = await Device.findAndCountAll({ where: { typeId }, limit, offset });
-    }
-    if (brandId && typeId) {
-      brands = await Device.findAndCountAll({ where: { brandId, typeId }, limit, offset });
-    }
-    return res.status(200).json(brands);
   }
 
   async getOne(req, res) {

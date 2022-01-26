@@ -1,5 +1,4 @@
 const { DataTypes } = require('sequelize');
-const { roles } = require('../constants/roles');
 const sequelize = require('../db');
 
 const User = sequelize.define('user', {
@@ -7,7 +6,6 @@ const User = sequelize.define('user', {
   email: { type: DataTypes.STRING, unique: true },
   login: { type: DataTypes.STRING, unique: true },
   password: { type: DataTypes.STRING },
-  role: { type: DataTypes.STRING, defaultValue: roles.user },
 });
 
 const Basket = sequelize.define('basket', {
@@ -51,6 +49,24 @@ const TypeBrand = sequelize.define('type_brand', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
+const Role = sequelize.define('role', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  title: { type: DataTypes.STRING, unique: true, allowNull: false },
+  description: { type: DataTypes.STRING, allowNull: false },
+});
+
+const RolePermission = sequelize.define('role_permission', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  title: { type: DataTypes.STRING, allowNull: false },
+  description: { type: DataTypes.STRING, allowNull: false },
+});
+
+Role.hasMany(User);
+User.belongsTo(User);
+
+Role.hasMany(RolePermission);
+RolePermission.belongsTo(Role);
+
 User.hasOne(Basket);
 Basket.belongsTo(User);
 
@@ -80,6 +96,8 @@ Brand.belongsToMany(Type, { through: TypeBrand });
 
 module.exports = {
   User,
+  Role,
+  RolePermission,
   Basket,
   BasketDevice,
   Device,

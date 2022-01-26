@@ -2,9 +2,11 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
-const { roles } = require('../constants/roles');
-const ApiError = require('../error/ApiError');
-const { User, Basket } = require('../models');
+const ApiError = require('../../error/ApiError');
+const { User, Basket } = require('../../models');
+const RoleController = require('../role/roleController');
+const { getRoleByParams } = require('../role/roleService');
+const { getUserByParams } = require('./userService');
 
 const generateJWT = ({
   id, email, login, role,
@@ -19,7 +21,7 @@ const generateJWT = ({
 class UserController {
   async registration(req, res, next) {
     const {
-      email, password, login, role = roles.user,
+      email, password, login,
     } = req.body;
     if (!email || !password) {
       return next(ApiError.badRequest('Некорректный email или пароль'));
@@ -37,15 +39,16 @@ class UserController {
     try {
       const hashPassword = await bcrypt.hash(password, 5);
       const user = await User.create({
-        email, role, login, password: hashPassword,
+        email, login, password: hashPassword, roleId: 1,
       });
+      const role = await getRoleByParams({ id: user.id });
       await Basket.create({ userId: user.id });
 
       const token = generateJWT({
         id: user.id,
         email: user.email,
         login: user.login,
-        role: user.role,
+        role: role.title,
       });
       return res.status(200).json({ token });
     } catch (err) {
@@ -69,50 +72,62 @@ class UserController {
     if (!comparePassword) {
       return next(ApiError.internal('Указан неверный логин/пароль'));
     }
+
+    const role = await RoleController.getRoleByParams({ id: user.roleId });
     const token = generateJWT({
       id: user.id,
       email: user.email,
       login: user.login,
-      role: user.role,
+      role: role.title,
     });
     return res.status(200).json({ token });
   }
 
   async check(req, res) {
     const {
-      id, email, login, role,
+      id,
+      email,
+      login,
     } = req.user;
+
+    const user = await getUserByParams({ id });
+    const role = await getRoleByParams({ id: user.roleId });
+
     const token = generateJWT({
       id,
       email,
       login,
-      role,
+      role: role.title,
     });
+
     return res.json({
       token,
       user: {
-        id, email, login, role,
+        id,
+        email,
+        login,
+        role: role.title,
       },
     });
   }
 
-  async getRoles(req, res) {
-    return res.json({
-      roles,
-    });
-  }
-
-  async getAllUsers(req, res) {
-    const users = await User.findAll();
-    return res.status(200).json(users);
+  async getAllUsers(req, res, next) {
+    try {
+      const users = await User.findAll();
+      return res.status(200).json(users);
+    } catch (err) {
+      return next(ApiError.badRequest('Пользователи не найдены'));
+    }
   }
 
   async setUser(req, res, next) {
     const { id } = req.params;
     const { email, login, role } = req.body;
+
+    const test = await getRoleByParams({ title: role });
     try {
       const updateUser = await User.update({
-        email, login, role,
+        email, login, roleId: test.id,
       }, {
         where: {
           id,
