@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const ApiError = require('../error/ApiError');
 
-module.exports = function checkRole(role) {
+module.exports = function checkRole(roleId) {
   return async function checkRoleCallback(req, res, next) {
     if (req.method === 'OPTIONS') {
       return next();
@@ -13,7 +13,7 @@ module.exports = function checkRole(role) {
         return res.status(status).json({ message });
       }
       const decoded = jwt.verify(token, process.env.SECRET_KEY);
-      if (decoded.role !== role) {
+      if (decoded.roleId !== roleId) {
         const { status, message } = ApiError.forbidden();
         return res.status(status).json({ message });
       }

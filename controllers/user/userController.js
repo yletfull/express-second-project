@@ -4,8 +4,6 @@ const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const ApiError = require('../../error/ApiError');
 const { User, Basket } = require('../../models');
-const RoleController = require('../role/roleController');
-const { getRoleByParams } = require('../role/roleService');
 const { getUserByParams } = require('./userService');
 
 const generateJWT = ({
@@ -41,14 +39,13 @@ class UserController {
       const user = await User.create({
         email, login, password: hashPassword, roleId: 1,
       });
-      const role = await getRoleByParams({ id: user.id });
       await Basket.create({ userId: user.id });
 
       const token = generateJWT({
         id: user.id,
         email: user.email,
         login: user.login,
-        role: role.title,
+        roleId: user.roleId,
       });
       return res.status(200).json({ token });
     } catch (err) {
@@ -73,12 +70,11 @@ class UserController {
       return next(ApiError.internal('Указан неверный логин/пароль'));
     }
 
-    const role = await RoleController.getRoleByParams({ id: user.roleId });
     const token = generateJWT({
       id: user.id,
       email: user.email,
       login: user.login,
-      role: role.title,
+      roleId: user.roleId,
     });
     return res.status(200).json({ token });
   }
@@ -91,13 +87,12 @@ class UserController {
     } = req.user;
 
     const user = await getUserByParams({ id });
-    const role = await getRoleByParams({ id: user.roleId });
 
     const token = generateJWT({
       id,
       email,
       login,
-      role: role.title,
+      roleId: user.roleId,
     });
 
     return res.json({
@@ -106,7 +101,7 @@ class UserController {
         id,
         email,
         login,
-        role: role.title,
+        roleId: user.roleId,
       },
     });
   }
@@ -122,12 +117,11 @@ class UserController {
 
   async setUser(req, res, next) {
     const { id } = req.params;
-    const { email, login, role } = req.body;
+    const { email, login, roleId } = req.body;
 
-    const test = await getRoleByParams({ title: role });
     try {
       const updateUser = await User.update({
-        email, login, roleId: test.id,
+        email, login, roleId,
       }, {
         where: {
           id,

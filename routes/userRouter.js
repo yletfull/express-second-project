@@ -1,5 +1,5 @@
 const Router = require('express');
-const { roles } = require('../constants/roles');
+const { usersRolesIds } = require('../constants/roles');
 const userController = require('../controllers/user/userController');
 
 const router = new Router();
@@ -11,7 +11,7 @@ router.post('/registration', UserController.registration);
 router.post('/login', UserController.login);
 router.get('/auth', authMiddleware, userController.check);
 
-router.patch('/:id', checkRoleMiddleware(roles.admin), userController.setUser);
-router.get('/users', checkRoleMiddleware(roles.admin), userController.getAllUsers);
+router.patch('/:id', checkRoleMiddleware(usersRolesIds.admin), userController.setUser);
+router.get('/users', checkRoleMiddleware(usersRolesIds.admin), userController.getAllUsers);
 
 module.exports = router;
