@@ -3,7 +3,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const ApiError = require('../../error/ApiError');
-const { User, Basket } = require('../../models');
+const { Basket } = require('../../models');
+const { User } = require('../../models/User');
 const { getUserByParams } = require('./userService');
 
 const generateJWT = ({
@@ -47,6 +48,7 @@ class UserController {
         login: user.login,
         roleId: user.roleId,
       });
+
       return res.status(200).json({ token });
     } catch (err) {
       next(ApiError.badRequest(err));
@@ -62,7 +64,7 @@ class UserController {
       },
     });
     if (!user) {
-      return next(ApiError.internal('Пользователь не найден'));
+      return next(ApiError.internal('Указан неверный логин/пароль'));
     }
 
     const comparePassword = bcrypt.compareSync(password, user.password);
@@ -76,6 +78,7 @@ class UserController {
       login: user.login,
       roleId: user.roleId,
     });
+
     return res.status(200).json({ token });
   }
 
@@ -109,6 +112,7 @@ class UserController {
   async getAllUsers(req, res, next) {
     try {
       const users = await User.findAll();
+
       return res.status(200).json(users);
     } catch (err) {
       return next(ApiError.badRequest('Пользователи не найдены'));
@@ -127,6 +131,7 @@ class UserController {
           id,
         },
       });
+
       return res.status(200).json(updateUser);
     } catch (err) {
       next(ApiError.badRequest(err));

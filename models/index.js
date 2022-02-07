@@ -1,107 +1,53 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../db');
+const { Role } = require('./Role');
+const { RolePermission } = require('./RolePermission');
+const { Basket } = require('./Basket');
+const { BasketDevice } = require('./BasketDevice');
+const { Device } = require('./Device');
+const { Brand } = require('./Brand');
+const { Rating } = require('./Rating');
+const { TypeBrand } = require('./TypeBrand');
+const { DeviceInfo } = require('./DeviceInfo');
+const { User } = require('./User');
+const { Type } = require('./Type');
 
-const User = sequelize.define('user', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  email: { type: DataTypes.STRING, unique: true },
-  login: { type: DataTypes.STRING, unique: true },
-  password: { type: DataTypes.STRING },
-});
-
-const Basket = sequelize.define('basket', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-});
-
-const BasketDevice = sequelize.define('basket_device', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-});
-
-const Device = sequelize.define('device', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  name: { type: DataTypes.STRING, allowNull: false },
-  price: { type: DataTypes.INTEGER, allowNull: false },
-  rating: { type: DataTypes.INTEGER, defaultValue: 0 },
-  img: { type: DataTypes.STRING, allowNull: false },
-});
-
-const Type = sequelize.define('type', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  name: { type: DataTypes.STRING, unique: true, allowNull: false },
-});
-
-const Brand = sequelize.define('brand', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  name: { type: DataTypes.STRING, unique: true, allowNull: false },
-});
-
-const Rating = sequelize.define('rating', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  rate: { type: DataTypes.INTEGER, allowNull: false },
-});
-
-const DeviceInfo = sequelize.define('device_info', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  title: { type: DataTypes.STRING, allowNull: false },
-  description: { type: DataTypes.STRING, allowNull: false },
-});
-
-const TypeBrand = sequelize.define('type_brand', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-});
-
-const Role = sequelize.define('role', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  title: { type: DataTypes.STRING, unique: true, allowNull: false },
-  description: { type: DataTypes.STRING, allowNull: false },
-});
-
-const RolePermission = sequelize.define('role_permission', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  title: { type: DataTypes.STRING, allowNull: false },
-  description: { type: DataTypes.STRING, allowNull: false },
-});
-
-Role.hasMany(User);
-User.belongsTo(User);
-
-Role.hasMany(RolePermission);
-RolePermission.belongsTo(Role);
-
-User.hasOne(Basket);
 Basket.belongsTo(User);
-
-User.hasMany(Rating);
-Rating.belongsTo(User);
-
 Basket.hasMany(BasketDevice);
+
 BasketDevice.belongsTo(Basket);
-
-Type.hasMany(Device);
-Device.belongsTo(Type);
-
-Brand.hasMany(Device);
-Device.belongsTo(Brand);
-
-Device.hasMany(Rating);
-Rating.belongsTo(Device);
-
-Device.hasMany(BasketDevice);
 BasketDevice.belongsTo(Device);
 
-Device.hasMany(DeviceInfo, { as: 'info' });
-DeviceInfo.belongsTo(Device);
-
-Type.belongsToMany(Brand, { through: TypeBrand });
+Brand.hasMany(Device);
 Brand.belongsToMany(Type, { through: TypeBrand });
 
+Device.belongsTo(Type);
+Device.belongsTo(Brand);
+Device.hasMany(Rating);
+Device.hasMany(BasketDevice);
+Device.hasMany(DeviceInfo, { as: 'info' });
+
+DeviceInfo.belongsTo(Device);
+
+Rating.belongsTo(User);
+Rating.belongsTo(Device);
+
+Role.hasMany(User);
+Role.hasMany(RolePermission);
+
+RolePermission.belongsTo(Role);
+
+Type.hasMany(Device);
+Type.belongsToMany(Brand, { through: TypeBrand });
+
+User.belongsTo(User);
+User.hasOne(Basket);
+User.hasMany(Rating);
+
 module.exports = {
-  User,
   Role,
   RolePermission,
   Basket,
   BasketDevice,
   Device,
-  Type,
   Brand,
   Rating,
   TypeBrand,

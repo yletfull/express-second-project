@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
 const uuid = require('uuid');
 const path = require('path');
-const { Device, DeviceInfo } = require('../../models');
 const ApiError = require('../../error/ApiError');
 const { statics } = require('../../constants/statics');
+const { Device, DeviceInfo } = require('../../models');
 
 class DeviceController {
   async create(req, res, next) {
@@ -55,6 +55,7 @@ class DeviceController {
       if (brandId && typeId) {
         brands = await Device.findAndCountAll({ where: { brandId, typeId }, limit, offset });
       }
+
       return res.status(200).json(brands);
     } catch (err) {
       return next(ApiError.badRequest('Ничего не найдено'));
@@ -67,6 +68,7 @@ class DeviceController {
       where: { id },
       include: [{ model: DeviceInfo, as: 'info' }],
     });
+
     return res.status(200).json(device);
   }
 }
