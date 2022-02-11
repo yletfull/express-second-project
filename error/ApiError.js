@@ -5,11 +5,11 @@ class ApiError extends Error {
     this.message = message;
   }
 
-  static badRequest(message) {
+  static badRequest(message = 'Ошибка сервера') {
     return new ApiError(404, message);
   }
 
-  static internal(message) {
+  static internal(message = 'Внутренняя ошибка сервера') {
     return new ApiError(500, message);
   }
 

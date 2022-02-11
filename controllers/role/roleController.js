@@ -5,6 +5,7 @@ const { Role } = require('../../models');
 class RoleController {
   async create(req, res, next) {
     const { title, description } = req.body;
+
     try {
       const role = await Role.create({ title, description });
 

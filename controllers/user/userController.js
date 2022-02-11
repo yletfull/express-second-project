@@ -22,6 +22,7 @@ class UserController {
     const {
       email, password, login,
     } = req.body;
+
     if (!email || !password) {
       return next(ApiError.badRequest('Некорректный email или пароль'));
     }
@@ -58,11 +59,13 @@ class UserController {
 
   async login(req, res, next) {
     const { login = '', email = '', password } = req.body;
+
     const user = await User.findOne({
       where: {
         [Op.or]: [{ login }, { email }],
       },
     });
+
     if (!user) {
       return next(ApiError.internal('Указан неверный логин/пароль'));
     }
