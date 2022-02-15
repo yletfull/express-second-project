@@ -1,5 +1,7 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
 const uuid = require('uuid');
+const { Op } = require('sequelize');
 const path = require('path');
 const ApiError = require('../../error/ApiError');
 const { statics } = require('../../constants/statics');
@@ -41,17 +43,19 @@ class DeviceController {
 
   async getAll(req, res, next) {
     const {
-      limit = 10, page = 1, ...filters
+      limit = 10, page = 1, type, brands = [],
     } = req.query;
 
     const offset = page * limit - limit;
+    const typesIds = { typeId: type };
+    const brandsIds = brands?.map((brandId) => ({ brandId }));
+    const where = { [Op.and]: [type && typesIds, ...brandsIds] };
+    console.log(where);
+    const query = { where, limit, offset };
 
     try {
-      if (filters) {
-        const brands = await Device.findAndCountAll({ where: { ...filters }, limit, offset });
-        return res.status(200).json(brands);
-      }
-      return next(ApiError.badRequest('Ничего не найдено'));
+      const filteredBrands = await Device.findAndCountAll(query);
+      return res.status(200).json(filteredBrands);
     } catch (err) {
       return next(ApiError.badRequest('Ничего не найдено'));
     }
@@ -77,6 +81,10 @@ class DeviceController {
           id,
         },
       });
+
+      if (!device) {
+        return next(ApiError.badRequest('Сущность не найдена'));
+      }
 
       return res.status(200).json(device);
     } catch (err) {
