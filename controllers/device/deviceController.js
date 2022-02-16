@@ -6,6 +6,7 @@ const path = require('path');
 const ApiError = require('../../error/ApiError');
 const { statics } = require('../../constants/statics');
 const { Device, DeviceInfo } = require('../../models');
+const { ratings } = require('../../constants/ratings');
 
 class DeviceController {
   async create(req, res, next) {
@@ -43,14 +44,21 @@ class DeviceController {
 
   async getAll(req, res, next) {
     const {
-      limit = 10, page = 1, type, brands = [],
+      limit = 10, page = 1, type, rating, brands = [],
     } = req.query;
 
     const offset = page * limit - limit;
-    const typesIds = { typeId: type };
-    const brandsIds = brands?.map((brandId) => ({ brandId }));
-    const where = { [Op.and]: [type && typesIds, ...brandsIds] };
-    console.log(where);
+    const where = {
+      typeId: type || {
+        [Op.not]: null,
+      },
+      rating: rating || {
+        [Op.not]: null,
+      },
+      brandId: {
+        [Op.or]: brands,
+      },
+    };
     const query = { where, limit, offset };
 
     try {
@@ -61,15 +69,19 @@ class DeviceController {
     }
   }
 
-  async getOne(req, res) {
+  async getOne(req, res, next) {
     const { id } = req.params;
 
-    const device = await Device.findOne({
-      where: { id },
-      include: [{ model: DeviceInfo, as: 'info' }],
-    });
+    try {
+      const device = await Device.findOne({
+        where: { id },
+        include: [{ model: DeviceInfo, as: 'info' }],
+      });
 
-    return res.status(200).json(device);
+      return res.status(200).json(device);
+    } catch (err) {
+      return next(ApiError.badRequest());
+    }
   }
 
   async removeOne(req, res, next) {
@@ -90,6 +102,10 @@ class DeviceController {
     } catch (err) {
       return next(ApiError.badRequest());
     }
+  }
+
+  getRatings(req, res) {
+    return res.status(200).json(ratings.map((rating) => ({ text: rating, value: rating })));
   }
 }
 

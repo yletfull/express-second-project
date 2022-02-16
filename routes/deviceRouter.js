@@ -7,6 +7,7 @@ const router = new Router();
 
 router.post('/', checkRoleMiddleware(usersRolesIds.admin), deviceController.create);
 router.delete('/:id', checkRoleMiddleware(usersRolesIds.admin), deviceController.removeOne);
+router.get('/ratings', deviceController.getRatings);
 router.get('/', deviceController.getAll);
 router.get('/:id', deviceController.getOne);
 
