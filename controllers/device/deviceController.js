@@ -44,7 +44,7 @@ class DeviceController {
 
   async getAll(req, res, next) {
     const {
-      limit = 10, page = 1, type, rating, brands = [],
+      limit = 10, page = 1, type, rating, price, brands = [],
     } = req.query;
 
     const offset = page * limit - limit;
@@ -58,6 +58,16 @@ class DeviceController {
       brandId: {
         [Op.or]: brands,
       },
+      price: {
+        [Op.and]: {
+          [Op.gte]: price?.from || 0,
+          [Op.lte]: price?.to || Number.MAX_SAFE_INTEGER,
+        },
+      },
+      // include: {
+      //   model: DeviceInfo,
+      //   as: 'info',
+      // },
     };
     const query = { where, limit, offset };
 
