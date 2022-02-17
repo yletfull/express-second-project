@@ -1,12 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
-const uuid = require('uuid');
 const { Op } = require('sequelize');
-const path = require('path');
 const ApiError = require('../../error/ApiError');
-const { statics } = require('../../constants/statics');
 const { Device, DeviceInfo } = require('../../models');
 const { ratings } = require('../../constants/ratings');
+const { moveFile, moveFiles } = require('../../utils/filtes');
+const { Type } = require('../../models/Type');
 
 class DeviceController {
   async create(req, res, next) {
@@ -16,16 +15,19 @@ class DeviceController {
       } = req.body;
 
       const {
-        img,
+        preview, images,
       } = req.files;
 
-      const extention = path.extname(img.name).substr(1);
-      const fileName = `${uuid.v4()}.${extention}`;
-
-      img.mv(path.resolve(__dirname, statics.general, fileName));
+      const previewFileName = moveFile(preview);
+      const imagesFilesNames = moveFiles(images);
 
       const device = await Device.create({
-        name, price, brandId, typeId, img: fileName,
+        name,
+        price,
+        brandId,
+        typeId,
+        preview: previewFileName,
+        images: imagesFilesNames,
       });
 
       if (info) {
@@ -64,10 +66,6 @@ class DeviceController {
           [Op.lte]: price?.to || Number.MAX_SAFE_INTEGER,
         },
       },
-      // include: {
-      //   model: DeviceInfo,
-      //   as: 'info',
-      // },
     };
     const query = { where, limit, offset };
 
@@ -85,7 +83,10 @@ class DeviceController {
     try {
       const device = await Device.findOne({
         where: { id },
-        include: [{ model: DeviceInfo, as: 'info' }],
+        include: [
+          { model: DeviceInfo, as: 'info' },
+          { model: Type, attributes: ['name'] },
+        ],
       });
 
       return res.status(200).json(device);
