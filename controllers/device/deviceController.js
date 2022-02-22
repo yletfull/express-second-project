@@ -1,11 +1,13 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
 const { Op } = require('sequelize');
+const { Sequelize } = require('sequelize');
 const ApiError = require('../../error/ApiError');
-const { Device, DeviceInfo } = require('../../models');
+const { Device, DeviceInfo, Rating } = require('../../models');
 const { ratings } = require('../../constants/ratings');
 const { moveFile, moveFiles } = require('../../utils/filtes');
 const { Type } = require('../../models/Type');
+// const { Sequelize } = require('../../db');
 
 class DeviceController {
   async create(req, res, next) {
@@ -54,9 +56,9 @@ class DeviceController {
       typeId: type || {
         [Op.not]: null,
       },
-      rating: rating || {
-        [Op.not]: null,
-      },
+      // rating: rating || {
+      //   [Op.not]: null,
+      // },
       brandId: {
         [Op.or]: brands,
       },
@@ -67,7 +69,12 @@ class DeviceController {
         },
       },
     };
-    const query = { where, limit, offset };
+    const include = [
+      { model: Rating, as: 'ratings', attributes: ['id', 'rate'] },
+    ];
+    const query = {
+      where, include, limit, offset,
+    };
 
     try {
       const filteredBrands = await Device.findAndCountAll(query);
@@ -82,14 +89,29 @@ class DeviceController {
 
     try {
       const device = await Device.findOne({
-        where: { id },
         include: [
           { model: DeviceInfo, as: 'info' },
           { model: Type, attributes: ['name'] },
         ],
+        where: { id },
       });
 
-      return res.status(200).json(device);
+      const rating = await Rating.findOne({
+        attributes: [
+          [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('rate')), 'FLOAT'), 'value'],
+          [Sequelize.cast(Sequelize.fn('count', Sequelize.col('rate')), 'INTEGER'), 'votes'],
+        ],
+        where: {
+          deviceId: device.id,
+        },
+      });
+
+      const result = {
+        ...device.dataValues,
+        rating,
+      };
+
+      return res.status(200).json(result);
     } catch (err) {
       return next(ApiError.badRequest());
     }
