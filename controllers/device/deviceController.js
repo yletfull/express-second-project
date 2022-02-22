@@ -87,15 +87,24 @@ class DeviceController {
   async getOne(req, res, next) {
     const { id } = req.params;
 
-    try {
-      const device = await Device.findOne({
-        include: [
-          { model: DeviceInfo, as: 'info' },
-          { model: Type, attributes: ['name'] },
-        ],
-        where: { id },
-      });
+    const device = await Device.findOne({
+      include: [
+        { model: DeviceInfo, as: 'info' },
+        { model: Type, attributes: ['name'] },
+        {
+          model: Rating,
+          required: false,
+          attributes: [
+            [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('rate')), 'FLOAT'), 'value'],
+            [Sequelize.cast(Sequelize.fn('count', Sequelize.col('rate')), 'INTEGER'), 'votes'],
+          ],
+        },
+      ],
+      group: ['device.id', 'info.id', 'type.id', 'ratings.id', 'ratings.deviceId'],
+      where: { id },
+    });
 
+    try {
       const rating = await Rating.findOne({
         attributes: [
           [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('rate')), 'FLOAT'), 'value'],
