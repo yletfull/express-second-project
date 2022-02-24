@@ -88,6 +88,7 @@ class DeviceController {
     const { id } = req.params;
 
     const device = await Device.findOne({
+      subQuery: false,
       include: [
         { model: DeviceInfo, as: 'info' },
         { model: Type, attributes: ['name'] },
@@ -95,10 +96,13 @@ class DeviceController {
           model: Rating,
           required: false,
           attributes: [
-            [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('rate')), 'FLOAT'), 'value'],
-            [Sequelize.cast(Sequelize.fn('count', Sequelize.col('rate')), 'INTEGER'), 'votes'],
           ],
         },
+      ],
+      attributes: [
+        'id',
+        [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'value'],
+        [Sequelize.cast(Sequelize.fn('count', Sequelize.col('ratings.rate')), 'INTEGER'), 'votes'],
       ],
       group: ['device.id', 'info.id', 'type.id', 'ratings.id', 'ratings.deviceId'],
       where: { id },
