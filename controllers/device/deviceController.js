@@ -87,44 +87,49 @@ class DeviceController {
   async getOne(req, res, next) {
     const { id } = req.params;
 
-    const device = await Device.findOne({
-      subQuery: false,
-      include: [
-        { model: DeviceInfo, as: 'info' },
-        { model: Type, attributes: ['name'] },
-        {
-          model: Rating,
-          required: false,
-          attributes: [
-          ],
-        },
-      ],
-      attributes: [
-        'id',
-        [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'value'],
-        [Sequelize.cast(Sequelize.fn('count', Sequelize.col('ratings.rate')), 'INTEGER'), 'votes'],
-      ],
-      group: ['device.id', 'info.id', 'type.id', 'ratings.id', 'ratings.deviceId'],
-      where: { id },
-    });
-
     try {
-      const rating = await Rating.findOne({
-        attributes: [
-          [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('rate')), 'FLOAT'), 'value'],
-          [Sequelize.cast(Sequelize.fn('count', Sequelize.col('rate')), 'INTEGER'), 'votes'],
+      const device = await Device.findOne({
+        // subQuery: false,
+        include: [
+          {
+            model: Rating,
+            required: false,
+            attributes: [],
+          },
+          {
+            model: DeviceInfo,
+            as: 'info',
+          },
+          {
+            model: Type,
+            attributes: ['name'],
+          },
         ],
-        where: {
-          deviceId: device.id,
-        },
+        attributes: [
+          'id',
+          'count',
+          'price',
+          'name',
+          'images',
+          'preview',
+          [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'value'],
+          [Sequelize.cast(Sequelize.fn('count', Sequelize.col('ratings.rate')), 'INTEGER'), 'votes'],
+        ],
+        group: [
+          'device.id',
+          'device.count',
+          'device.price',
+          'device.name',
+          'device.images',
+          'device.preview',
+          'info.id',
+          'type.id',
+          'ratings.deviceId',
+        ],
+        where: { id },
       });
 
-      const result = {
-        ...device.dataValues,
-        rating,
-      };
-
-      return res.status(200).json(result);
+      return res.status(200).json(device);
     } catch (err) {
       return next(ApiError.badRequest());
     }
