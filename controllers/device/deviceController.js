@@ -5,7 +5,7 @@ const { Sequelize } = require('sequelize');
 const ApiError = require('../../error/ApiError');
 const { Device, DeviceInfo, Rating } = require('../../models');
 const { ratings } = require('../../constants/ratings');
-const { moveFile, moveFiles } = require('../../utils/filtes');
+const { moveFile, moveFiles } = require('../../utils/files');
 const { Type } = require('../../models/Type');
 // const { Sequelize } = require('../../db');
 
@@ -89,7 +89,6 @@ class DeviceController {
 
     try {
       const device = await Device.findOne({
-        // subQuery: false,
         include: [
           {
             model: Rating,
@@ -97,12 +96,12 @@ class DeviceController {
             attributes: [],
           },
           {
-            model: DeviceInfo,
-            as: 'info',
-          },
-          {
             model: Type,
             attributes: ['name'],
+          },
+          {
+            model: DeviceInfo,
+            as: 'info',
           },
         ],
         attributes: [
@@ -112,7 +111,7 @@ class DeviceController {
           'name',
           'images',
           'preview',
-          [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'value'],
+          [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'avgRate'],
           [Sequelize.cast(Sequelize.fn('count', Sequelize.col('ratings.rate')), 'INTEGER'), 'votes'],
         ],
         group: [
@@ -124,6 +123,7 @@ class DeviceController {
           'device.preview',
           'info.id',
           'type.id',
+          'type.name',
           'ratings.deviceId',
         ],
         where: { id },
