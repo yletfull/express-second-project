@@ -7,7 +7,8 @@ const { Device, DeviceInfo, Rating } = require('../../models');
 const { ratings } = require('../../constants/ratings');
 const { moveFile, moveFiles } = require('../../utils/files');
 const { Type } = require('../../models/Type');
-// const { Sequelize } = require('../../db');
+const { DeviceFeedback } = require('../../models/DeviceFeedback');
+const { User } = require('../../models/User');
 
 class DeviceController {
   async create(req, res, next) {
@@ -70,7 +71,11 @@ class DeviceController {
       },
     };
     const include = [
-      { model: Rating, as: 'ratings', attributes: ['id', 'rate'] },
+      {
+        model: Rating,
+        as: 'ratings',
+        attributes: ['id', 'rate'],
+      },
     ];
     const query = {
       where, include, limit, offset,
@@ -87,48 +92,72 @@ class DeviceController {
   async getOne(req, res, next) {
     const { id } = req.params;
 
-    try {
-      const device = await Device.findOne({
-        include: [
-          {
-            model: Rating,
-            required: false,
-            attributes: [],
-          },
-          {
-            model: Type,
-            attributes: ['name'],
-          },
-          {
-            model: DeviceInfo,
-            as: 'info',
-          },
-        ],
-        attributes: [
-          'id',
-          'count',
-          'price',
-          'name',
-          'images',
-          'preview',
-          [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'avgRate'],
-          [Sequelize.cast(Sequelize.fn('count', Sequelize.col('ratings.rate')), 'INTEGER'), 'votes'],
-        ],
-        group: [
-          'device.id',
-          'device.count',
-          'device.price',
-          'device.name',
-          'device.images',
-          'device.preview',
-          'info.id',
-          'type.id',
-          'type.name',
-          'ratings.deviceId',
-        ],
-        where: { id },
-      });
+    const device = await Device.findOne({
+      include: [
+        {
+          model: Rating,
+          required: false,
+          attributes: [],
+        },
+        {
+          model: Type,
+          attributes: ['name'],
+        },
+        {
+          model: DeviceInfo,
+          as: 'info',
+        },
+        {
+          model: DeviceFeedback,
+          as: 'feedback',
+          include: [
+            {
+              model: User,
+              attributes: ['login'],
+            },
+            {
+              model: Device,
+              // attributes: ['rate'],
+              include: [
+                {
+                  model: Rating,
+                  attributes: [[Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'avgRate']],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      attributes: [
+        'id',
+        'count',
+        'price',
+        'name',
+        'images',
+        'preview',
+        [Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'avgRate'],
+        [Sequelize.cast(Sequelize.fn('count', Sequelize.col('ratings.rate')), 'INTEGER'), 'votes'],
+      ],
+      group: [
+        'device.id',
+        'device.count',
+        'device.price',
+        'device.name',
+        'device.images',
+        'device.preview',
+        'info.id',
+        'feedback.id',
+        'feedback->user.id',
+        'feedback->device.id',
+        'feedback->device->ratings.id',
+        'type.id',
+        'type.name',
+        'ratings.deviceId',
+      ],
+      where: { id },
+    });
 
+    try {
       return res.status(200).json(device);
     } catch (err) {
       return next(ApiError.badRequest());

@@ -9,6 +9,7 @@ const { TypeBrand } = require('./TypeBrand');
 const { DeviceInfo } = require('./DeviceInfo');
 const { User } = require('./User');
 const { Type } = require('./Type');
+const { DeviceFeedback } = require('./DeviceFeedback');
 
 Basket.belongsTo(User);
 Basket.hasMany(BasketDevice);
@@ -24,11 +25,17 @@ Device.belongsTo(Brand);
 Device.hasMany(Rating);
 Device.hasMany(BasketDevice);
 Device.hasMany(DeviceInfo, { as: 'info' });
+Device.hasMany(DeviceFeedback, { as: 'feedback' });
 
 DeviceInfo.belongsTo(Device);
 
+DeviceFeedback.belongsTo(Device);
+DeviceFeedback.belongsTo(User);
+DeviceFeedback.belongsTo(Rating);
+
 Rating.belongsTo(User);
 Rating.belongsTo(Device);
+Rating.hasMany(DeviceFeedback);
 
 Role.hasMany(User);
 Role.hasMany(RolePermission);
