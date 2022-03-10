@@ -48,6 +48,7 @@ Type.belongsToMany(Brand, { through: TypeBrand });
 User.belongsTo(User);
 User.hasOne(Basket);
 User.hasMany(Rating);
+User.hasMany(DeviceFeedback);
 
 module.exports = {
   Role,

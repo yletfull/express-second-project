@@ -116,14 +116,8 @@ class DeviceController {
               attributes: ['login'],
             },
             {
-              model: Device,
-              // attributes: ['rate'],
-              include: [
-                {
-                  model: Rating,
-                  attributes: [[Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'avgRate']],
-                },
-              ],
+              model: Rating,
+              attributes: [[Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'avgRate']],
             },
           ],
         },
@@ -148,8 +142,7 @@ class DeviceController {
         'info.id',
         'feedback.id',
         'feedback->user.id',
-        'feedback->device.id',
-        'feedback->device->ratings.id',
+        'feedback->rating.id',
         'type.id',
         'type.name',
         'ratings.deviceId',
