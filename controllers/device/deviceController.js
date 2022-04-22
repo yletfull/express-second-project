@@ -117,7 +117,7 @@ class DeviceController {
             },
             {
               model: Rating,
-              attributes: [[Sequelize.cast(Sequelize.fn('avg', Sequelize.col('ratings.rate')), 'FLOAT'), 'avgRate']],
+              attributes: ['rate'],
             },
           ],
         },
@@ -179,6 +179,43 @@ class DeviceController {
 
   getRatings(req, res) {
     return res.status(200).json(ratings.map((rating) => ({ text: rating, value: rating })));
+  }
+
+  async createFeedback(req, res, next) {
+    try {
+      const {
+        title,
+        value,
+        rating,
+        deviceId,
+      } = req.body;
+
+      // const {
+      //   images = [],
+      // } = req.files;
+
+      // console.log(req.files);
+      // const imagesFilesNames = moveFiles(images);
+
+      const createdRating = await Rating.create({
+        rate: rating,
+        userId: req.user.id,
+        deviceId,
+      });
+
+      const feedback = await DeviceFeedback.create({
+        title,
+        value,
+        deviceId,
+        userId: req.user.id,
+        ratingId: createdRating.id,
+        // images: imagesFilesNames,
+      });
+
+      return res.json(feedback);
+    } catch (e) {
+      return next(ApiError.badRequest(e.message));
+    }
   }
 }
 
