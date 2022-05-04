@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const { runServerCallback, runServerErrorCallback } = require('./utils');
+const { createClient } = require('./client');
 const mainRouter = require('./routes');
 const errorHandler = require('./middleware/ErrorHandlingMiddleware');
 
@@ -16,8 +17,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.resolve(__dirname, 'static')));
 app.use(fileUpload({}));
+// createClient(app);
 app.use('/api', mainRouter);
-
 app.use(errorHandler);
 
 const start = async () => {
