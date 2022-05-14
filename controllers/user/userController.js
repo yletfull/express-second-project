@@ -31,16 +31,22 @@ class UserController {
       return next(ApiError.badRequest('Логин - обязательное поле'));
     }
 
-    const candidate = await User.findOne({ where: { email } });
+    const candidate = await User.findOne({
+      where: {
+        [Op.or]: [{ login }, { email }],
+      },
+    });
     if (candidate) {
       return next(ApiError.badRequest('Пользователь с такими данными уже существует'));
     }
 
     try {
       const hashPassword = await bcrypt.hash(password, 5);
+
       const user = await User.create({
-        email, login, password: hashPassword, roleId: 1,
+        email, login, password: hashPassword,
       });
+
       await Basket.create({ userId: user.id });
 
       const token = generateJWT({
