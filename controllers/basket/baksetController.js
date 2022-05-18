@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 const ApiError = require('../../error/ApiError');
-const { Role, Basket } = require('../../models');
+const { Role, Basket, BasketDevice } = require('../../models');
 
 class BasketController {
   async create(req, res, next) {
@@ -15,13 +15,22 @@ class BasketController {
     }
   }
 
-  async createBasketItem(req, res, next) {
+  async addBasketItems(req, res, next) {
+    const { items } = req.body;
     try {
-      const sessionID = req.sessionID || null;
-      const basket = await Basket.create({
-        sessionID,
+      const sessionId = req?.currentSession;
+      const basket = await Basket.findOne({
+        where: {
+          sessionId,
+        },
       });
-      return res.status(200).json(basket);
+
+      const basketDevice = await BasketDevice.create({
+        basketId: basket.id,
+        deviceId: items[0],
+      });
+
+      return res.status(200).json(basketDevice);
     } catch (err) {
       return next(ApiError.badRequest(err));
     }
@@ -33,6 +42,9 @@ class BasketController {
     const basket = await Basket.findOne({
       where: {
         sessionId,
+      },
+      include: {
+        model: BasketDevice,
       },
     });
     try {

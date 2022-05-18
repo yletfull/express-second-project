@@ -10,7 +10,9 @@ const { DeviceInfo } = require('./DeviceInfo');
 const { User } = require('./User');
 const { Type } = require('./Type');
 const { DeviceFeedback } = require('./DeviceFeedback');
+const { Session } = require('./Session');
 
+Basket.belongsTo(Session);
 Basket.belongsTo(User);
 Basket.hasMany(BasketDevice);
 
@@ -46,9 +48,13 @@ Type.hasMany(Device);
 Type.belongsToMany(Brand, { through: TypeBrand });
 
 User.belongsTo(User);
+User.hasOne(Session);
 User.hasOne(Basket);
 User.hasMany(Rating);
 User.hasMany(DeviceFeedback);
+
+Session.hasOne(Basket);
+Session.belongsTo(User);
 
 module.exports = {
   Role,
@@ -60,4 +66,5 @@ module.exports = {
   Rating,
   TypeBrand,
   DeviceInfo,
+  Session,
 };
