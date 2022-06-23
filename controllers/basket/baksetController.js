@@ -1,6 +1,11 @@
 /* eslint-disable class-methods-use-this */
 const ApiError = require('../../error/ApiError');
-const { Role, Basket, BasketDevice } = require('../../models');
+const {
+  Role,
+  Basket,
+  BasketDevice,
+  Device,
+} = require('../../models');
 
 class BasketController {
   async create(req, res, next) {
@@ -35,7 +40,11 @@ class BasketController {
         deviceId: items[0],
       });
 
-      return res.status(200).json(basketDevice);
+      if (basketDevice?.basket_devices) {
+        return res.status(200).json(basketDevice.basket_devices);
+      }
+
+      return res.status(200).json([]);
     } catch (err) {
       return next(ApiError.badRequest(err));
     }
@@ -50,6 +59,9 @@ class BasketController {
       },
       include: {
         model: BasketDevice,
+        include: {
+          model: Device,
+        },
       },
     });
     try {
@@ -58,9 +70,14 @@ class BasketController {
           sessionId,
           userId,
         });
-        return res.status(200).json(newBasket);
+
+        if (newBasket?.basket_devices) {
+          return res.status(200).json(newBasket.basket_devices);
+        }
+
+        return res.status(200).json([]);
       }
-      return res.status(200).json(basket);
+      return res.status(200).json(basket.basket_devices);
     } catch (err) {
       return next(ApiError.badRequest(err));
     }
