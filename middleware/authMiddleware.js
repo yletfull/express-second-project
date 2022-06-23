@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const ApiError = require('../error/ApiError');
-const { Session } = require('../models/Session');
 
 const { status: statusErr, message: messageErr } = ApiError.unAuthorized();
 
@@ -10,13 +9,10 @@ module.exports = async function auth(req, res, next) {
   }
   try {
     const token = req.headers.authorization.split(' ')[1];
-    const sessionId = req.cookies['current-session'];
-    const bdSession = await Session.findOne({
-      value: sessionId,
-    });
+    const { bdSession } = req;
 
     if (!token) {
-      if (bdSession.userId) {
+      if (bdSession && bdSession.userId) {
         await bdSession.update({
           userId: null,
         });
@@ -27,11 +23,13 @@ module.exports = async function auth(req, res, next) {
 
     const decodedUser = jwt.verify(token, process.env.SECRET_KEY);
     req.user = decodedUser;
-    if (bdSession.userId === null) {
+
+    if (bdSession && bdSession.userId === null) {
       await bdSession.update({
         userId: decodedUser.id,
       });
       await bdSession.save();
+      console.log(bdSession);
     }
     return next();
   } catch (e) {

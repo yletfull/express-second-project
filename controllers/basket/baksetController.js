@@ -18,7 +18,12 @@ class BasketController {
   async addBasketItems(req, res, next) {
     const { items } = req.body;
     try {
-      const sessionId = req?.currentSession;
+      const sessionId = req?.currentSession?.id;
+
+      if (!sessionId) {
+        return next(ApiError.badRequest('Корзина не найдена'));
+      }
+
       const basket = await Basket.findOne({
         where: {
           sessionId,
@@ -37,8 +42,8 @@ class BasketController {
   }
 
   async getBasketItems(req, res, next) {
-    const sessionId = req?.currentSession || null;
-    const userId = req?.user?.id || null;
+    const sessionId = req?.currentSession?.id || null;
+    const userId = req?.currentSession?.userId || null;
     const basket = await Basket.findOne({
       where: {
         sessionId,

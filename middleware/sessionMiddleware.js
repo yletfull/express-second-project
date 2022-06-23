@@ -7,7 +7,9 @@ module.exports = async function sessionMiddleware(req, res, next) {
 
   if (currentSessionCookie) {
     bdSession = await Session.findOne({
-      value: currentSessionCookie,
+      where: {
+        value: currentSessionCookie,
+      },
     });
   }
 
@@ -24,6 +26,6 @@ module.exports = async function sessionMiddleware(req, res, next) {
     return next();
   }
 
-  req.currentSession = bdSession.value;
+  req.currentSession = bdSession;
   return next();
 };
